@@ -1,0 +1,21 @@
+!!!
+html
+  head
+    title= 'Anothermall Admin'
+    link(rel='stylesheet', href='/stylesheets/bootstrap.css')
+    script(src='/javascripts/jquery-1.6.2.js', type='text/javascript')
+    #container
+      #header
+        h1
+          a(href='/') #{nameAndVersion(appName, version)}
+      - if (typeof currentUser !== 'undefined')
+        .right
+          a#logout(href='/sessions') 登出
+        .right
+          &nbsp;
+        #errorMessages
+        #normalMessages
+      !{flashMessages}
+      != body
+
+    

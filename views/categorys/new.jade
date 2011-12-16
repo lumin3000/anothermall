@@ -1,0 +1,5 @@
+.page
+  h2创建分类
+  p
+  form(method='post', action='/categorys' , onSubmit='return beforeSubmit(this)')
+    !=partial('fields', { locals: { d: d } })

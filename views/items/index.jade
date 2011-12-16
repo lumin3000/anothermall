@@ -1,0 +1,23 @@
+style
+  #item-list li {display:bock;width:280px;height:280px;overflow:hidden;float:left;border:10px solid white}
+  #item-list span {display:block}
+  #item-list li:hover{background:#ccc}
+toolbar
+  a#create-document(href='/items/new')
+    +创建商品
+
+#item-list-title
+  管理已经创建的商品
+ul#item-list
+  - for (var d in items)
+    li
+      a(id='item-title-' + items[d].id, href='/items/' + items[d].id +'/edit')
+        span
+          img(src='/img/'+items[d].image+'_0.jpg')
+        span
+          =items[d].title
+
+
+
+
+

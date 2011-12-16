@@ -1,0 +1,17 @@
+h2分类列表
+toolbar
+  a#create-category(href='/categorys/new')
+    +创建分类
+
+#category-list-title
+  管理已经创建的分类
+ul#category-list
+  - for (var d in categorys)
+    li
+      a(id='categorys-title-' + categorys[d].id, href='/categorys/' + categorys[d].id+'/edit')
+        =categorys[d].title
+
+
+
+
+

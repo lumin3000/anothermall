@@ -1,0 +1,6 @@
+.page
+  h2 创建新商品
+  p
+    a.button(href='/items') &larr; All Documents
+  form(method='post', action='/items', onSubmit='return beforeSubmit(this)')
+    !=partial('fields', { locals: { d: d } })

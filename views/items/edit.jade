@@ -1,0 +1,9 @@
+h2 编辑商品信息
+p
+  a.button(href='/items')
+    &larr; All Items
+form(method='post', action='/items/' + d.id, onSubmit='return beforeSubmit(this)')
+  input(name='d[id]', value=d.id, type='hidden')
+  input(name='_method', value='PUT', type='hidden')
+  !=partial('fields', { locals: { d: d } })
+

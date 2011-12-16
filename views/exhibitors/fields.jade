@@ -1,0 +1,64 @@
+#title
+  label 姓名:
+  input(name='title', value=d.title || '')
+#summary
+  label 描述:
+  div
+    textarea(name='summary')= d.summary
+- if (d.pinyin)
+  #pinyin
+    label 全拼:
+    input(name='pinyin', value=d.pinyin)
+-if (d.pinyin_short)
+  #pinyin
+    label 缩写:
+    input(name='pinyin_short', value=d.pinyin_short)
+#imageurl
+  label 头像:
+  iframe(name='image_uploader' , src='/exhibitors/image/'+(d.image_url||0) , frameborder='0' , width='300' , height='180')
+  input(type='hidden', name='image_url', value=d.image_url || '')
+#weburl
+  label 网址:
+  input(name='web_url', value=d.web_url || '')
+div
+  input(type='submit', value='保存' )
+  a(href="/exhibitors")取消
+script(type='text/javascript')
+  var flashError = function(str){
+    document.getElementById('errorMessages').innerHTML = str;
+  }
+  var flashMessage = function(str){
+    document.getElementById('normalMessages').innerHTML = str;
+  }
+  var beforeSubmit = function(form){
+    var avatar_url = window.frames["image_uploader"].document.title
+    if (form.pinyin_short && form.pinyin_short.value=='')
+    {
+      flashError("所写不可以是空的哦");
+      return false;
+    }
+    if (form.pinyin && form.pinyin.value=='')
+    {
+      flashError("全拼不可以是空的哦");
+      return false;
+    }
+    if (form.title.value=='')
+    {
+      flashError("姓名不可以是空的哦");
+      return false;
+    }
+    if (form.summary.value=='')
+    {
+      flashError("描述不可以是空的哦");
+      return false;
+    }
+    if (avatar_url.length<1 && !form.image_url.value)
+    {
+      flashError("请先上传头像");
+      return false;
+    }
+    if(avatar_url.length>1)
+      form.image_url.value=avatar_url;
+    return true;
+  }
+

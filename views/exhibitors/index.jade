@@ -1,0 +1,17 @@
+h2展出人列表
+toolbar
+  a#create-exhibitor(href='/exhibitors/new')
+    +创建展出人
+
+#exhibitor-list-title
+  管理已经创建的展出人
+ul#exhibitor-list
+  - for (var d in exhibitors)
+    li
+      a(id='exhibitor-title-' + exhibitors[d].id, href='/exhibitors/' + exhibitors[d].id)
+        =exhibitors[d].title
+
+
+
+
+

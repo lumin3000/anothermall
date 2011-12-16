@@ -1,0 +1,7 @@
+h2编辑展出人信息
+p
+form(method='post', action='/exhibitors/' + d.id, onSubmit='return beforeSubmit(this)')
+  input(name='d[id]', value=d.id, type='hidden')
+  input(name='_method', value='PUT', type='hidden')
+  !=partial('fields', { locals: { d: d } })
+

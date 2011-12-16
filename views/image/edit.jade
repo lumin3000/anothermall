@@ -1,0 +1,30 @@
+!!!
+html
+  head
+    title= (d.image||'')
+    #container
+      form(method='post', enctype='multipart/form-data', action=d.action, onsubmit="return beforeSubmit(this)")
+        p
+          input(name='image', type='file')
+        p
+          input(value='Upload Image', type='submit')
+        - if(d.image)
+            img#newimage(src='/img/'+d.image+'_0.jpg', style='height:50px', alt=d.image)
+            script(type='text/javascript')
+              (function(){//transfer the src to top script, and get rid of newimage dom.
+                var newImageDom = document.getElementById('newimage');
+                if(top.imageSrcholder)
+                {
+                  top.imageSrcholder(newImageDom.alt);  
+                  newImageDom.style.display='none';
+                }           
+              })()
+
+
+  script(type='text/javascript')
+    var beforeSubmit = function(form){
+      if(!form.image.value)
+        return false
+      return true
+    }
+       

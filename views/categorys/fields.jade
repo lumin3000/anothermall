@@ -1,0 +1,22 @@
+#title
+  label 分类名称:
+  input(name='title', value=d.title || '')
+div
+  input(type='submit', value='保存' )
+  a(href="/categorys")取消
+script(type='text/javascript')
+  var flashError = function(str){
+    document.getElementById('errorMessages').innerHTML = str;
+  }
+  var flashMessage = function(str){
+    document.getElementById('normalMessages').innerHTML = str;
+  }
+  var beforeSubmit = function(form){
+    if (form.title.value=='')
+    {
+      flashError("描述不可以是空的哦");
+      return false;
+    }
+    return true;
+  }
+

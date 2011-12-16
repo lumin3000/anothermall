@@ -1,0 +1,12 @@
+.page
+  h2 登录
+  p
+    a.button(href='/users/new') 创建新帐户 &rarr;
+  form.users#login(method='post', action='/sessions')
+    !=partial('../users/fields', { locals: { user: user } })
+    div
+      label(for='remember_me') 保存的我的密码:
+      input#remember_me(type='checkbox', name='remember_me',checked='checked')
+    div
+      input(type='submit', value='登录')
+
