@@ -4,6 +4,8 @@ Item = undefined
 Administrator = undefined
 LoginToken = undefined
 Category = undefined
+Address = undefined
+LogReference = undefined
 
 extractKeywords = (text) ->
   return []  unless text
@@ -28,6 +30,7 @@ defineModels = (mongoose, fn) ->
   ObjectId = Schema.ObjectId
 
   Ticket = new Schema
+    user:[{ type: ObjectId, ref: 'User' }]
     created_at:
       type:Date
       index:true
@@ -57,7 +60,10 @@ defineModels = (mongoose, fn) ->
 
   Category.virtual("id").get ->
     @_id.toHexString()
-
+  
+  Category.pre "save", (next) ->
+    @title = @title.trim()
+    next()
 
   Exhibitor = new Schema
     created_at:
@@ -74,22 +80,16 @@ defineModels = (mongoose, fn) ->
     image_url:String
     web_url:String
     administrator: [{ type: ObjectId, ref: 'Administrator' }]
+    user:[{ type: ObjectId, ref: 'User' }]
 
   Exhibitor.virtual("id").get ->
     @_id.toHexString()
   
-  Administrator = new Schema
-    email:
-      type: String
-      validate: [ validatePresenceOf, "an email is required" ]
-      index:
-        unique: true
-    hashed_password: String
-    salt: String
-
-  Administrator.virtual("id").get ->
-    @_id.toHexString()
-
+  Exhibitor.pre "save", (next) ->
+    @title = @title.trim()
+    @summary = @summary.trim()
+    @web_url = @web_url.trim() if @web_url
+    next()
 
   Item = new Schema
     created_at:
@@ -142,9 +142,7 @@ defineModels = (mongoose, fn) ->
     @delivery = @delivery.trim() if @delivery
     next()
 
-
-
-  User = new Schema
+  Administrator = new Schema
     email:
       type: String
       validate: [ validatePresenceOf, "an email is required" ]
@@ -152,11 +150,80 @@ defineModels = (mongoose, fn) ->
         unique: true
     hashed_password: String
     salt: String
-    exhibitor:[{ type: ObjectId, ref: 'Exhibitor' }]
-    black:
+
+  Administrator.virtual("id").get ->
+    @_id.toHexString()
+
+  Administrator.virtual("password").set((password) ->
+    @_password = password
+    @salt = @makeSalt()
+    @hashed_password = @encryptPassword(password)
+  ).get ->
+    @_password
+
+  Administrator.method "authenticate", (plainText) ->
+    @encryptPassword(plainText) is @hashed_password
+
+  Administrator.method "makeSalt", ->
+    Math.round((new Date().valueOf() * Math.random())) + ""
+
+  Administrator.method "encryptPassword", (password) ->
+    crypto.createHmac("sha1", @salt).update(password).digest "hex"
+
+  Administrator.pre "save", (next) ->
+    unless validatePresenceOf(@password)
+      next new Error("Invalid password")
+    else
+      next()
+
+  Address = new Schema
+    user:[{ type: ObjectId, ref: 'User' }]
+    name:String
+    area:String
+    street:String
+    zipcode: Number
+    phone: Number
+
+  Address.virtual("id").get ->
+    @_id.toHexString()
+
+  Invoice = new Schema
+    user:[{ type: ObjectId, ref: 'User' }]
+    title:String
+    content:String
+    name:String
+    area:String
+    street:String
+    zipcode: Number
+    phone: Number
+
+  Invoice.virtual("id").get ->
+    @_id.toHexString()
+
+
+  LogReference = new Schema
+    user:[{ type: ObjectId, ref: 'User' }]
+    ip:String
+    created_at:Date
+
+
+  User = new Schema
+    name: String
+    email:
+      type: String
+      validate: [ validatePresenceOf, "an email is required" ]
+      index:{unique: true}
+    forbidden:
       type:Boolean
       default:false
-    
+    hashed_password: String
+    salt: String
+    created_at:Date
+    exhibitor:[{ type: ObjectId, ref: 'Exhibitor' }]
+    ticket:[{ type: ObjectId, ref: 'Ticket' }]
+    Log_reference:{ type: ObjectId, ref: 'LogReference' }]
+    address:[{ type: ObjectId, ref: 'Address' }]
+
 
   User.virtual("id").get ->
     @_id.toHexString()
@@ -182,6 +249,8 @@ defineModels = (mongoose, fn) ->
       next new Error("Invalid password")
     else
       next()
+
+
 
   LoginToken = new Schema
     email:
@@ -210,15 +279,14 @@ defineModels = (mongoose, fn) ->
       email: @email
       token: @token
       series: @series
-
-  ###
-  mongoose.model "Administrator", Administrator
-  ###
+  
   mongoose.model "Category", Category
-  mongoose.model "Exhibitor", Exhibitor
   mongoose.model "Ticket", Ticket
+  mongoose.model "Exhibitor", Exhibitor
   mongoose.model "Item", Item
-  mongoose.model "User", LoginToken
+  mongoose.model "Address", Address
+  mongoose.model "LogReference", LogReference
+  mongoose.model "User", User
   mongoose.model "LoginToken", LoginToken
   fn()
 
