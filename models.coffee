@@ -6,6 +6,7 @@ LoginToken = undefined
 Category = undefined
 Address = undefined
 LogReference = undefined
+User = undefined
 
 extractKeywords = (text) ->
   return []  unless text
@@ -28,30 +29,6 @@ defineModels = (mongoose, fn) ->
     value and value.length
   Schema = mongoose.Schema
   ObjectId = Schema.ObjectId
-
-  Ticket = new Schema
-    user:[{ type: ObjectId, ref: 'User' }]
-    created_at:
-      type:Date
-      index:true
-    delivery_processing:
-      type:Boolean
-      default:true
-      index:true
-    pay_ref_url:String
-    item: [{ type: ObjectId, ref: 'Item' }]
-    exhibitor:[{ type: ObjectId, ref: 'Exhibitor' }]
-    delivery_at:Date
-
-  Ticket.pre "save", (next) ->
-    #auto change delivery status by delivery_at
-    @delivery_processing = false if @delivery_at
-    next()
-
-  Ticket.virtual("id").get ->
-    @_id.toHexString()
-
-
 
   Category = new Schema
     title:String
@@ -176,6 +153,33 @@ defineModels = (mongoose, fn) ->
     else
       next()
 
+
+
+
+  Ticket = new Schema
+    user:[{ type: ObjectId, ref: 'User' }]
+    created_at:
+      type:Date
+      index:true
+    delivery_processing:
+      type:Boolean
+      default:true
+      index:true
+    pay_ref_url:String
+    item: [{ type: ObjectId, ref: 'Item' }]
+    exhibitor:[{ type: ObjectId, ref: 'Exhibitor' }]
+    delivery_at:Date
+
+  Ticket.pre "save", (next) ->
+    #auto change delivery status by delivery_at
+    @delivery_processing = false if @delivery_at
+    next()
+
+  Ticket.virtual("id").get ->
+    @_id.toHexString()
+
+
+
   Address = new Schema
     user:[{ type: ObjectId, ref: 'User' }]
     name:String
@@ -185,19 +189,6 @@ defineModels = (mongoose, fn) ->
     phone: Number
 
   Address.virtual("id").get ->
-    @_id.toHexString()
-
-  Invoice = new Schema
-    user:[{ type: ObjectId, ref: 'User' }]
-    title:String
-    content:String
-    name:String
-    area:String
-    street:String
-    zipcode: Number
-    phone: Number
-
-  Invoice.virtual("id").get ->
     @_id.toHexString()
 
 
@@ -221,7 +212,7 @@ defineModels = (mongoose, fn) ->
     created_at:Date
     exhibitor:[{ type: ObjectId, ref: 'Exhibitor' }]
     ticket:[{ type: ObjectId, ref: 'Ticket' }]
-    Log_reference:{ type: ObjectId, ref: 'LogReference' }]
+    Log_reference:[{ type: ObjectId, ref: 'LogReference' }]
     address:[{ type: ObjectId, ref: 'Address' }]
 
 

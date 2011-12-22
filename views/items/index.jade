@@ -11,7 +11,7 @@ toolbar
 ul#item-list
   - for (var d in items)
     li
-      a(id='item-title-' + items[d].id, href='/items/' + items[d].id +'/edit')
+      a(id='item-title-' + items[d].id, href='/items/' + items[d].id )
         span
           img(src='/img/'+items[d].image+'_0.jpg')
         span

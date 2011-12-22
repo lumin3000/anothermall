@@ -1,6 +1,29 @@
+style
+  #article{float:left;width:500px;margin-right:50px}
+  #aside{float:left;width:270px}
 h2=d.title
-  a.button(href='/items/' + d.id + '/edit') Edit
 p
   a.button(href='/items')
-    &larr; All Documents
-p=d.data
+    &larr; 查看全部商品
+p=d
+#itemview
+  #article
+    -for(var i=0;i<d.article.length;i++)
+      div
+        img(src='/img/'+d.article[i].image+'_1.jpg')
+      div=d.article[i].word
+  #aside
+    #title=d.title
+    .sidetitle 价格
+    #price=d.price
+    -if(d.size)
+      .sidetitle 尺寸
+      #size=d.size
+    .sidetitle 展出人
+    #exhibitor_avatar
+      img(src='/img/'+d.exhibitorimage+'_1.jpg')
+
+
+
+
+

@@ -96,7 +96,7 @@ app.configure ->
 
 GridFS = new GridFS('anothermall_images')
 
-Image_exhibitor_size = [36,180]
+Image_exhibitor_size = [36,100,180]
 Image_item_size = [180,500,960]
 
 #load models
@@ -173,7 +173,7 @@ saveImage = (file,imagename_mongod,sizeArray,next)->
 
 #site
 app.get "/", loadUser, (req, res) ->
-  res.render "index.jade"
+  res.redirect "/items" 
 
 util.inherits NotFound, Error
 app.get "/404", (req, res) ->
@@ -211,205 +211,6 @@ app.get "/img/:id",(req,res)->
 
 ###
 
-
-       _  _  _           _   _  _  _  _  _  _  _  _  _  _    _  _  _       _  _  _  _    _  _  _  _    _           _    
-    _ (_)(_)(_) _      _(_)_(_)(_)(_)(_)(_)(_)(_)(_)(_)(_)_ (_)(_)(_) _  _(_)(_)(_)(_)_ (_)(_)(_)(_) _(_)_       _(_)   
-   (_)         (_)   _(_) (_)_    (_)      (_)           (_)         (_)(_)          (_)(_)         (_) (_)_   _(_)     
-   (_)             _(_)     (_)_  (_)      (_) _  _      (_)    _  _  _ (_)          (_)(_) _  _  _ (_)   (_)_(_)       
-   (_)            (_) _  _  _ (_) (_)      (_)(_)(_)     (_)   (_)(_)(_)(_)          (_)(_)(_)(_)(_)        (_)         
-   (_)          _ (_)(_)(_)(_)(_) (_)      (_)           (_)         (_)(_)          (_)(_)   (_) _         (_)         
-   (_) _  _  _ (_)(_)         (_) (_)      (_) _  _  _  _(_) _  _  _ (_)(_)_  _  _  _(_)(_)      (_) _      (_)         
-      (_)(_)(_)   (_)         (_) (_)      (_)(_)(_)(_)(_)  (_)(_)(_)(_)  (_)(_)(_)(_)  (_)         (_)     (_)         
-                                                                                                                        
-                                                                                                                        
-###
-
-#list
-app.get "/categorys", loadUser, (req, res) ->
-  Category.find {},[],sort: [ "created_at", "descending" ],(err, categorys) ->
-    categorys = categorys.map (d) ->
-      title: d.title
-      id: d._id
-    res.render "categorys/index.jade",{locals:{categorys: categorys,currentUser:req.currentUser}}
-
-#list in json
-app.get "/categorys.:format?", loadUser, (req, res) ->
-  Category.find {}, [],sort: [ "created_at", "descending" ], (err, categorys) ->
-    switch req.params.format
-      when "json"
-        res.send categorys.map (d) ->
-          d.toObject()
-      else
-        res.send "Format not available", 400
-
-#the page for creating
-app.get "/categorys/new", loadUser, (req, res) ->
-  res.render "categorys/new.jade",{locals:{d: new Category(),currentUser:req.currentUser}}
-
-#create 
-app.post "/categorys", loadUser, (req, res) ->
-  d = new Category req.body
-  d.created_at = new Date()
-  d.administrator = req.currentUser
-  d.save ->
-    req.flash "info", "创建分类成功"
-    res.redirect "/categorys"
-
-#the page for editing
-app.get "/categorys/:id.:format?/edit", loadUser, (req, res, next) ->
-  Category.findOne {_id: req.params.id}, (err, d) ->
-    if err
-      req.flash "info", "没有这个分类"
-      res.redirect "/categorys"      
-    else
-      res.render "categorys/edit.jade",{locals:{d: d,currentUser: req.currentUser}}
-
-#Edit
-app.put "/categorys/:id.:format?", loadUser, (req, res) ->
-  Category.findOne
-    _id: req.params.id
-  , (err, d) ->
-    return next(new NotFound("Category not found"))  unless d
-    d_update    = req.body
-    Object.keys(d_update).forEach (key) -> d[key] = d_update[key]
-    d.created_at= new Date()
-    d.administrator = req.currentUser
-    d.save (err) ->
-      switch req.params.format
-        when "json"
-          res.send d.toObject()
-        else
-          req.flash "info", "分类编辑成功"
-          res.redirect "/categorys"
-
-#Del
-app.del "/categorys/:id.:format?", loadUser, (req, res) ->
-  Category.findOne {_id: req.params.id}, (err, d) ->
-    return next(new NotFound("Category not found"))  unless d
-    d.remove ->
-      switch req.params.format
-        when "json"
-          res.send "true"
-        else
-          req.flash "info", "分类被删除"
-          res.redirect "/categorys"
-
-###
-
-    _  _  _  _  _  _           _  _           _  _  _  _  _  _  _  _    _  _  _  _  _  _  _  _   _  _  _  _    _  _  _  _       
-   (_)(_)(_)(_)(_)(_)_       _(_)(_)         (_)(_)(_)(_)(_)(_)(_)(_) _(_)(_)(_)(_)(_)(_)(_)(_)_(_)(_)(_)(_)_ (_)(_)(_)(_) _    
-   (_)              (_)_   _(_)  (_)         (_)   (_)    (_)        (_)  (_)         (_)     (_)          (_)(_)         (_)   
-   (_) _  _           (_)_(_)    (_) _  _  _ (_)   (_)    (_) _  _  _(_)  (_)         (_)     (_)          (_)(_) _  _  _ (_)   
-   (_)(_)(_)           _(_)_     (_)(_)(_)(_)(_)   (_)    (_)(_)(_)(_)_   (_)         (_)     (_)          (_)(_)(_)(_)(_)      
-   (_)               _(_) (_)_   (_)         (_)   (_)    (_)        (_)  (_)         (_)     (_)          (_)(_)   (_) _       
-   (_) _  _  _  _  _(_)     (_)_ (_)         (_) _ (_) _  (_)_  _  _ (_)_ (_) _       (_)     (_)_  _  _  _(_)(_)      (_) _    
-   (_)(_)(_)(_)(_)(_)         (_)(_)         (_)(_)(_)(_)(_)(_)(_)(_)  (_)(_)(_)      (_)       (_)(_)(_)(_)  (_)         (_)   
-                                                                                                                                
-                                                                                                                              
-###
-
-#list
-app.get "/exhibitors", loadUser, (req, res) ->
-  Exhibitor.find {},[],sort: [ "created_at", "descending" ],(err, exhibitors) ->
-    exhibitors = exhibitors.map (d) ->
-      title: d.title
-      id: d._id
-    res.render "exhibitors/index.jade",{locals:{exhibitors: exhibitors,currentUser:req.currentUser}}
-
-#list in json
-app.get "/exhibitors.:format?", loadUser, (req, res) ->
-  Exhibitor.find {}, [],sort: [ "pinyin", "descending" ], (err, exhibitors) ->
-    switch req.params.format
-      when "json"
-        res.send exhibitors.map (d) ->
-          d.toObject()
-      else
-        res.send "Format not available", 400
-
-
-#the page for exhibitor creating
-app.get "/exhibitors/new", loadUser, (req, res) ->
-  res.render "exhibitors/new.jade",{locals:{d: new Exhibitor(),currentUser:req.currentUser}}     
-
-
-#Create
-app.post "/exhibitors", loadUser, (req, res) ->
-  d = new Exhibitor req.body
-  d.created_at = new Date()
-  d.administrator = req.currentUser
-  d.pinyin = pinyin.full d.title
-  d.pinyin_short = pinyin.short d.title
-  d.save ->
-    req.flash "info", "创建展出人成功"
-    res.redirect "/exhibitors"
-
-  
-#the page for editing
-app.get "/exhibitors/:id.:format?/edit", loadUser, (req, res) ->
-  Exhibitor.findOne {_id: req.params.id}, (err, d) ->
-    if err
-      req.flash "info", "没有这个展出人"
-      res.redirect "/exhibitors"      
-    else
-      res.render "exhibitors/edit.jade",{locals:{d: d,currentUser: req.currentUser}}
-
-
-#Edit
-app.put "/exhibitors/:id.:format?", loadUser, (req, res, next) ->
-  Exhibitor.findOne
-    _id: req.params.id
-  , (err, d) ->
-    return next(new NotFound("Exhibitor not found"))  unless d
-    d_update    = req.body
-    Object.keys(d_update).forEach (key) -> d[key] = d_update[key]
-    d.created_at= new Date()
-    d.administrator = req.currentUser
-    d.save (err) ->
-      switch req.params.format
-        when "json"
-          res.send d.toObject()
-        else
-          req.flash "info", "展出人编辑成功"
-          res.redirect "/exhibitors"
-
-
-#Del
-app.del "/exhibitors/:id.:format?", loadUser, (req, res, next) ->
-  Exhibitor.findOne {_id: req.params.id}, (err, d) ->
-    return next(new NotFound("exhibitor not found"))  unless d
-    d.remove ->
-      switch req.params.format
-        when "json"
-          res.send "true"
-        else
-          req.flash "info", "展出人被删除"
-          res.redirect "/exhibitors"
-
-
-#create new exhibitor avatar
-app.post "/exhibitors/image", (req, res) ->
-  file = req.body.image.path
-  imagename_mongod = file.replace('/tmp/','e_')+parseInt(Math.random()*10000)
-  saveAvatar file,imagename_mongod, ->
-    res.redirect "/exhibitors/image/#{imagename_mongod}"
-
-
-
-#the page for exhibitor avatar creating and editing
-app.get "/exhibitors/image/:id", (req, res)->
-  d = {action:"/exhibitors/image"}
-  d.image = req.params.id if parseInt(req.params.id)!=0
-  res.render 'image/edit.jade',
-    locals:{d:d}
-    layout:false 
-
-#Read, we dont need read, so redirect to edit
-app.get "/exhibitors/:id.:format?", loadUser, (req, res) ->
-  res.redirect "/exhibitors/#{req.params.id}/edit"
-
-
-###
-
        _  _  _  _  _  _  _  _  _  _  _  _  _  _           _    
       (_)(_)(_)(_)(_)(_)(_)(_)(_)(_)(_)(_)(_)(_) _     _ (_)   
          (_)         (_)      (_)            (_)(_)   (_)(_)   
@@ -441,85 +242,23 @@ app.get "/items.:format?", loadUser, (req, res) ->
       else
         res.send "Format not available", 400
 
-#the page for creating
-app.get "/items/new", loadUser, (req, res) ->
-  res.render "items/new.jade",{locals:{d: new Item(),currentUser:req.currentUser}}
-
-#create 
-app.post "/items", loadUser, (req, res) ->
-  d = new Item req.body
-  d.created_at = new Date()
-  d.administrator = req.currentUser
-  d.data = d.data[0]
-  tmp_data = JSON.parse(d.data)[0]
-  d.summary = tmp_data.word
-  d.image_url = tmp_data.image
-  #res.send "ok:"+JSON.stringify(d), 200
-  d.save ->
-    req.flash "info", "创建商品成功"
-    res.redirect "/items"
-
-#the page for editing
-app.get "/items/:id.:format?/edit", loadUser, (req, res, next) ->
+#Read, we dont need read, so redirect to edit
+app.get "/items/:id.:format?", loadUser, (req, res) ->
   Item.findOne {_id: req.params.id}, (err, d) ->
     if err
       req.flash "info", "没有这个商品"
       res.redirect "/items"      
     else
       Item.findOne({_id: req.params.id}).populate('category').run (err,one)->
-        d.categoryname = one.category[0].title if !err && one.category[0].title
+        d.categoryname = one.category[0].title
         Item.findOne({_id: req.params.id}).populate('exhibitor').run (err,one)->
-          d.exhibitorname = one.exhibitor[0].title if !err && one.exhibitor[0].title
-          res.render "items/edit.jade",{locals:{d: d,currentUser: req.currentUser}}
+          d.exhibitorname = one.exhibitor[0].title
+          d.exhibitorimage = one.exhibitor[0].image_url
+          d.article = JSON.parse d.data[0]
+          #d.data = (->"<div><img src=/img/#{el.image}_1.jpg /></div><div>#{el.word}</div>" for el in article)().join ''
+          res.render "items/show.jade",{locals:{d: d,currentUser: req.currentUser}}
+    #need some error and log process
 
-#Edit
-app.put "/items/:id.:format?", loadUser, (req, res) ->
-  Item.findOne
-    _id: req.params.id
-  , (err, d) ->
-    return next(new NotFound("Item not found"))  unless d
-    d_update    = req.body
-    Object.keys(d_update).forEach (key) -> d[key] = d_update[key]
-    d.created_at= new Date()
-    d.administrator = req.currentUser
-    d.data = d.data[0]
-    tmp_data = JSON.parse(d.data)[0]
-    d.summary = tmp_data.word
-    d.image_url = tmp_data.image
-    d.save (err) ->
-      switch req.params.format
-        when "json"
-          res.send d.toObject()
-        else
-          req.flash "info", "商品编辑成功"
-          res.redirect "/items"
-
-#Del
-app.del "/items/:id.:format?", loadUser, (req, res) ->
-  Item.findOne {_id: req.params.id}, (err, d) ->
-    return next(new NotFound("Item not found"))  unless d
-    d.remove ->
-      switch req.params.format
-        when "json"
-          res.send "true"
-        else
-          req.flash "info", "商品被删除"
-          res.redirect "/items"
-
-#create new item photo
-app.post "/items/image", (req, res) ->
-  file = req.body.image.path
-  imagename_mongod = file.replace('/tmp/','i_')+parseInt(Math.random()*10000)
-  saveItemPicture file,imagename_mongod, ->
-    res.redirect "/items/image/#{imagename_mongod}"
-
-#the page for item photo creating and editing
-app.get "/items/image/:id", (req, res)->
-  d = {action:"/items/image"}
-  d.image = req.params.id if parseInt(req.params.id)!=0
-  res.render 'image/edit.jade',
-    locals:{d:d}
-    layout:false 
 
 
 ###
