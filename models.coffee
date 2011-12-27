@@ -6,6 +6,7 @@ LoginToken = undefined
 Category = undefined
 Address = undefined
 LogReference = undefined
+ShoppingCart = undefined
 User = undefined
 
 extractKeywords = (text) ->
@@ -33,7 +34,9 @@ defineModels = (mongoose, fn) ->
   Category = new Schema
     title:String
     created_at:Date
-    administrator: [{ type: ObjectId, ref: 'Administrator' }]
+    administrator:
+      type: ObjectId
+      ref: 'Administrator'
 
   Category.virtual("id").get ->
     @_id.toHexString()
@@ -56,8 +59,12 @@ defineModels = (mongoose, fn) ->
     summary:String
     image_url:String
     web_url:String
-    administrator: [{ type: ObjectId, ref: 'Administrator' }]
-    user:[{ type: ObjectId, ref: 'User' }]
+    administrator:
+      type: ObjectId
+      ref: 'Administrator'
+    user:
+      type: ObjectId
+      ref: 'User'
 
   Exhibitor.virtual("id").get ->
     @_id.toHexString()
@@ -77,14 +84,19 @@ defineModels = (mongoose, fn) ->
       default:false
       index:true 
     category:
-      type:[{ type: ObjectId, ref: 'Category' }]
+      type: ObjectId
+      ref: 'Category'
       index:true
     exhibitor:
-      type:[{ type: ObjectId, ref: 'Exhibitor' }]
+      type: ObjectId
+      ref: 'Exhibitor'
       index:true
     price: 
       type:Number
       min:0
+    administrator:
+      type: ObjectId
+      ref: 'Administrator'
     title:String
     image_url:String
     summary:String
@@ -94,7 +106,6 @@ defineModels = (mongoose, fn) ->
     update_at:Date
     sold_at:Date
     keywords: [ String ]
-    administrator: [{ type: ObjectId, ref: 'Administrator' }]
     pay_url:String
     pay_processing:
       type:Boolean
@@ -154,10 +165,32 @@ defineModels = (mongoose, fn) ->
       next()
 
 
+  ShoppingCart = new Schema
+    user:
+      type: ObjectId
+      ref: 'User'
+    item: [{ type: ObjectId, ref: 'Item' }]
+    clean:
+      type:Boolean
+      default:false
+    created_at:Date
+   
+  ShoppingCart.virtual("id").get ->
+    @_id.toHexString()
 
 
   Ticket = new Schema
-    user:[{ type: ObjectId, ref: 'User' }]
+    title:String
+    image_url:String
+    user:
+      type: ObjectId
+      ref: 'User'
+    address:
+      type: ObjectId
+      ref: 'Address'
+    exhibitor:
+      type: ObjectId
+      ref: 'Exhibitor'
     created_at:
       type:Date
       index:true
@@ -165,9 +198,9 @@ defineModels = (mongoose, fn) ->
       type:Boolean
       default:true
       index:true
+    item: [ObjectId]
     pay_ref_url:String
-    item: [{ type: ObjectId, ref: 'Item' }]
-    exhibitor:[{ type: ObjectId, ref: 'Exhibitor' }]
+
     delivery_at:Date
 
   Ticket.pre "save", (next) ->
@@ -181,7 +214,9 @@ defineModels = (mongoose, fn) ->
 
 
   Address = new Schema
-    user:[{ type: ObjectId, ref: 'User' }]
+    user:
+      type: ObjectId
+      ref: 'User'
     name:String
     area:String
     street:String
@@ -193,7 +228,9 @@ defineModels = (mongoose, fn) ->
 
 
   LogReference = new Schema
-    user:[{ type: ObjectId, ref: 'User' }]
+    user:
+      type: ObjectId
+      ref: 'User'
     ip:String
     created_at:Date
 
@@ -210,10 +247,11 @@ defineModels = (mongoose, fn) ->
     hashed_password: String
     salt: String
     created_at:Date
-    exhibitor:[{ type: ObjectId, ref: 'Exhibitor' }]
+    exhibitor:{ type: ObjectId, ref: 'Exhibitor' }
     ticket:[{ type: ObjectId, ref: 'Ticket' }]
-    Log_reference:[{ type: ObjectId, ref: 'LogReference' }]
-    address:[{ type: ObjectId, ref: 'Address' }]
+    Log_reference:{ type: ObjectId, ref: 'LogReference' }
+    address:{ type: ObjectId, ref: 'Address' }
+    ShoppingCart:{type: ObjectId, ref: 'ShoppingCart' }
 
 
   User.virtual("id").get ->
@@ -272,6 +310,7 @@ defineModels = (mongoose, fn) ->
       series: @series
   
   mongoose.model "Category", Category
+  mongoose.model "ShoppingCart", ShoppingCart
   mongoose.model "Ticket", Ticket
   mongoose.model "Exhibitor", Exhibitor
   mongoose.model "Item", Item

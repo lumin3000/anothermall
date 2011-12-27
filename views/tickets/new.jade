@@ -1,0 +1,5 @@
+.page
+  h2='购物车'
+  p
+  form(method='post', action='/tickets' , onSubmit='return beforeSubmit(this)')
+    !=partial('fields', { locals: { d: d ,items:items} })

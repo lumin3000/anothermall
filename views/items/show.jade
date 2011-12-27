@@ -5,7 +5,6 @@ h2=d.title
 p
   a.button(href='/items')
     &larr; 查看全部商品
-p=d
 #itemview
   #article
     -for(var i=0;i<d.article.length;i++)
@@ -15,7 +14,8 @@ p=d
   #aside
     #title=d.title
     .sidetitle 价格
-    #price=d.price
+    #price=d.price+'元'
+    a(href='/tickets/new/'+d.id)购买
     -if(d.size)
       .sidetitle 尺寸
       #size=d.size

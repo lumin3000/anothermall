@@ -1,0 +1,15 @@
+h2分类列表
+
+
+#tickets-list-title
+  查看已经购买的商品
+ul#tickets-list
+  - for (var d in tickets)
+    li
+      a(id='tickets-title-' + tickets[d].id, href='/tickets/' + tickets[d].id)
+        =tickets[d].title
+
+
+
+
+

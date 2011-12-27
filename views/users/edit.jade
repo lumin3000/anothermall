@@ -1,0 +1,31 @@
+h2 编辑分类
+form(method='post', action='/users' )
+  input(name='_method', value='PUT', type='hidden')
+  div
+    label 姓名:
+    input(name='user[name]', value=user.name || '')
+  div
+    label 邮件:
+    input(name='user[email]', value=user.email || '')
+  div
+    label 密码:
+    input(name='user[password]', value='', type='password')
+  div
+    label 常用收货人姓名:
+    input(value=address.name || '', name='address[name]' )
+  div
+    label 省市地区:
+    input(value=address.area || '', name='address[area]' )
+  div
+    label 街道、门牌号: 
+    input(value=address.street || '', name='address[street]' )
+  div
+    label 电话:
+    input(value=address.phone || '', name='address[phone]' )
+  div
+    label 邮编: 
+    input(value=address.zipcode || '', name='address[zipcode]' )
+  div
+    input(type='submit', value='修改')
+
+

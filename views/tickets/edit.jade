@@ -1,0 +1,7 @@
+h2编辑分类
+p
+form(method='post', action='/categorys/' + d.id, onSubmit='return beforeSubmit(this)')
+  input(name='d[id]', value=d.id, type='hidden')
+  input(name='_method', value='PUT', type='hidden')
+  !=partial('fields', { locals: { d: d } })
+

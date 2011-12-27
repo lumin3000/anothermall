@@ -1,3 +1,4 @@
+async = require('async')
 express = require("express")
 connect = require("connect")
 jade = require("jade")
@@ -20,7 +21,10 @@ Exhibitor = undefined
 Category = undefined
 Item = undefined
 User = undefined
+Address = undefined
+Ticket = undefined
 LoginToken = undefined
+ShoppingCart = undefined
 Settings =
   development: {}
   test: {}
@@ -105,13 +109,16 @@ models.defineModels mongoose, ->
   app.Exhibitor = Exhibitor = mongoose.model "Exhibitor"
   app.Item = Item = mongoose.model "Item"
   app.User = User = mongoose.model "User"
+  app.Address = Address = mongoose.model "Address"
+  app.Ticket = Ticket = mongoose.model "Ticket"
+  app.ShoppingCart = ShoppingCart = mongoose.model "ShoppingCart"
   app.LoginToken = LoginToken = mongoose.model "LoginToken"
   db = mongoose.connect app.set "db-uri"
 
 
 #auth
 authenticateFromLoginToken = (req, res, next) ->
-  cookie = JSON.parse(req.cookies.logintoken)
+  cookie = JSON.parse(req.cookies.userlogintoken)
   LoginToken.findOne
     email: cookie.email
     series: cookie.series
@@ -128,7 +135,7 @@ authenticateFromLoginToken = (req, res, next) ->
         req.currentUser = user
         token.token = token.randomToken()
         token.save ->
-          res.cookie "logintoken", token.cookieValue,
+          res.cookie "userlogintoken", token.cookieValue,
             expires: new Date(Date.now() + 2 * 604800000)
             path: "/"
 
@@ -144,7 +151,7 @@ loadUser = (req, res, next) ->
         next()
       else
         res.redirect "/sessions/new"
-  else if req.cookies.logintoken
+  else if req.cookies.userlogintoken
     authenticateFromLoginToken req, res, next
   else
     res.redirect "/sessions/new"
@@ -209,6 +216,80 @@ app.get "/img/:id",(req,res)->
       #console.log "writeLocalImageFile ok~"
 
 
+
+
+###
+
+    _  _  _  _  _  _  _  _    _  _  _     _           _  _  _  _  _  _  _  _  _  _  _    
+   (_)(_)(_)(_)(_)(_)(_)(_)_ (_)(_)(_) _ (_)       _ (_)(_)(_)(_)(_)(_)(_)(_)(_)(_)(_)   
+         (_)         (_)  (_)         (_)(_)    _ (_)   (_)                  (_)         
+         (_)         (_)  (_)            (_) _ (_)      (_) _  _             (_)         
+         (_)         (_)  (_)            (_)(_) _       (_)(_)(_)            (_)         
+         (_)         (_)  (_)          _ (_)   (_) _    (_)                  (_)         
+         (_)       _ (_) _(_) _  _  _ (_)(_)      (_) _ (_) _  _  _  _       (_)         
+         (_)      (_)(_)(_)  (_)(_)(_)   (_)         (_)(_)(_)(_)(_)(_)      (_)         
+                                                                                         
+                                                                                      
+###
+
+#list
+app.get "/tickets", loadUser, (req, res) ->
+  Ticket.find {user:new User({_id:req.currentUser.id})},[],sort: [ "created_at", "descending" ],(err, tickets) ->
+    tickets = tickets.map (d) ->
+      title: d.title
+      id: d._id
+      image:d.image_url
+    res.render "tickets/index.jade",{locals:{tickets: tickets,currentUser:req.currentUser}}
+
+#list in json
+app.get "/tickets.:format?", loadUser, (req, res) ->
+  Ticket.find {user:new User({_id:req.currentUser.id})}, [],sort: [ "created_at", "descending" ], (err, items) ->
+    switch req.params.format
+      when "json"
+        res.send items.map (d) ->
+          d.toObject()
+      else
+        res.send "Format not available", 400
+
+#the page for creating
+app.get "/tickets/new/:id", loadUser, (req, res) ->
+  Item.findOne {_id: req.params.id}, (err, item) ->
+    if err
+      req.flash "info", "没有这个商品"
+      res.redirect "/items"
+    else
+      currentUser = {user:req.currentUser.id}
+      ShoppingCart.findOne currentUser, (err, cart) ->
+        cart = new ShoppingCart currentUser  if !cart
+        cart.created_at = new Date()
+        cart.item.push item._id if cart.item.indexOf(item._id)<0
+        cart.save (err)->
+          Item.find {_id:{$in:cart.item}},(err, items) ->
+            res.render "tickets/new.jade",{locals:{d: cart,currentUser:req.currentUser,items:items}}
+
+
+#create 
+app.post "/tickets", loadUser, (req, res) ->
+  d = new Ticket req.body
+  d.created_at = new Date()
+  d.user = req.currentUser.id
+  d.save ->
+    req.flash "info", "恭喜你，订单已经提交。"
+    res.redirect "/tickets"
+
+
+#Read
+app.get "/tickets/:id.:format?", loadUser, (req, res) ->
+  Ticket.findOne {_id: req.params.id}, (err, d) ->
+    if err
+      req.flash "info", "没有这个商品"
+      res.redirect "/tickets"      
+    else
+      res.render "tickets/show.jade",{locals:{d: d,currentUser: req.currentUser}}
+
+
+
+
 ###
 
        _  _  _  _  _  _  _  _  _  _  _  _  _  _           _    
@@ -250,11 +331,12 @@ app.get "/items/:id.:format?", loadUser, (req, res) ->
       res.redirect "/items"      
     else
       Item.findOne({_id: req.params.id}).populate('category').run (err,one)->
-        d.categoryname = one.category[0].title
+        d.categoryname = one.category.title
         Item.findOne({_id: req.params.id}).populate('exhibitor').run (err,one)->
-          d.exhibitorname = one.exhibitor[0].title
-          d.exhibitorimage = one.exhibitor[0].image_url
+          d.exhibitorname = one.exhibitor.title
+          d.exhibitorimage = one.exhibitor.image_url
           d.article = JSON.parse d.data[0]
+          d.id = d._id
           #d.data = (->"<div><img src=/img/#{el.image}_1.jpg /></div><div>#{el.word}</div>" for el in article)().join ''
           res.render "items/show.jade",{locals:{d: d,currentUser: req.currentUser}}
     #need some error and log process
@@ -275,6 +357,44 @@ app.get "/items/:id.:format?", loadUser, (req, res) ->
 
 ###
 
+#edit
+app.get "/users", loadUser,(req, res) ->
+  Address.findOne {user:req.currentUser},(err,address)->
+    console.log "address:"+address
+    address = new Address() if !address
+    res.render "users/edit.jade",
+      locals:
+        user: req.currentUser
+        address:address
+
+#edit
+app.put "/users",loadUser, (req, res) ->
+  accoutUserEdit = (next)->next()
+  accountAddressEdit = (next)->next()
+  address = ''
+  ['email','password','name'].forEach (el)->
+    if req.body.user[el]!='' && req.currentUser[el] != req.body.user[el]
+      req.currentUser[el] = req.body.user[el]
+      accoutUserEdit = (next)->req.currentUser.save next
+  Address.findOne {user:req.currentUser},(err,address)->
+    address = new Address() if !address
+    ['name','area','street','phone','zipcode'].forEach (el)->
+      if req.body.address[el]!='' && address[el] != req.body.address[el]
+        address[el] = req.body.address[el]
+        accountAddressEdit = (next)->
+          address.user = req.currentUser
+          address.save next
+    async.series [
+      accoutUserEdit,
+      accountAddressEdit,
+      ()->
+        req.flash "info", "帐户信息修改成功。"
+        res.render "users/edit.jade",{locals:{user: req.currentUser,address:req.body.address}}
+    ]
+    
+    
+
+
 app.get "/users/new", (req, res) ->
   res.render "users/new.jade",
     locals:
@@ -288,6 +408,7 @@ app.post "/users.:format?", (req, res) ->
         user: user
   user = new User(req.body.user)
   user.save (err) ->
+    console.log 'err:'+err
     return userSaveFailed()  if err
     req.flash "info", "帐户创建成功。"
     emails.sendWelcome user
@@ -314,7 +435,7 @@ app.post "/sessions", (req, res) ->
       if req.body.remember_me
         loginToken = new LoginToken(email: user.email)
         loginToken.save ->
-          res.cookie "logintoken", loginToken.cookieValue,
+          res.cookie "userlogintoken", loginToken.cookieValue,
             expires: new Date(Date.now() + 2 * 604800000)
             path: "/"
 
@@ -325,13 +446,14 @@ app.post "/sessions", (req, res) ->
       req.flash "error", "Incorrect credentials"
       res.redirect "/sessions/new"
 
-app.del "/sessions", loadUser, (req, res) ->
+#app.del "/sessions", loadUser, (req, res) ->
+app.get "/sessions", loadUser, (req, res) ->
   if req.session
     LoginToken.remove
       email: req.currentUser.email
     , ->
 
-    res.clearCookie "logintoken"
+    res.clearCookie "userlogintoken"
     req.session.destroy ->
   res.redirect "/sessions/new"
 

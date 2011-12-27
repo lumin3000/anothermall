@@ -1,0 +1,83 @@
+script(src='/javascripts/spine.js', type='text/javascript')
+style
+  div.itemstitle, div.itemstitle div{height:30px;line-height:30px}
+  .items{width:800px;height:100px;margin:5px auto;clear:both;border:1px solid black;overflow:hidden}
+  .items div {float:left;line-height:100px}
+  .items .image {width:100px}
+  .items .title {width:400px}
+  .items .price {width:200px}
+  .items .remove {width:100px;text-align:center}
+  .items .remove .remove {cursor:pointer}
+  .items .image img {width:45px;display:block;margin:10px}
+p=d
+p=items
+#title
+  
+#shoppingcart
+  div.items.itemstitle
+    div.image &nbsp;
+    div.title 商品名
+    div.price 价格
+    div.remove 操作
+  - var totalprice = 0
+  - for (var i in items)
+    -totalprice+=parseInt(items[i].price,10)
+    div.items
+      div.image
+        img(src='/img/'+items[i].image_url+'_0.jpg')
+      div.title=items[i].title
+      div.price=items[i].price
+      div.remove
+        span.remove 移除
+  div.items.itemstitle
+    div.image &nbsp;
+    div.title(style='text-align:right') 总价：
+    div.price=totalprice
+  a(href='/items')继续购物
+  input#showpayarea(type='button', value='结算' )
+#payarea(style='display:none')
+  #address 收货人信息
+  div
+    label 常用收货人姓名:
+    input(value=address.name || '', name='address[name]' )
+  div
+    label 省市地区:
+    input(value=address.area || '', name='address[area]' )
+  div
+    label 街道、门牌号: 
+    input(value=address.street || '', name='address[street]' )
+  div
+    label 电话:
+    input(value=address.phone || '', name='address[phone]' )
+  div
+    label 邮编: 
+    input(value=address.zipcode || '', name='address[zipcode]' )
+  #items 商品清单
+  #payment 结算信息
+  input#gopaygate(type='submit', value='付款' )
+
+script(type='text/javascript')
+  var flashError = function(str){
+    document.getElementById('errorMessages').innerHTML = str;
+  }
+  var flashMessage = function(str){
+    document.getElementById('normalMessages').innerHTML = str;
+  }
+  var beforeSubmit = function(form){
+
+    return true;
+  }
+
+:coffeescript
+  class Item extends Spine.Model
+    @configure "Description", "image", "word"
+  
+  class Items extends Spine.Controller
+    events:
+      "click span": "remove"
+  
+  class App extends Spine.Controller
+
+  top.app = new App()
+  
+

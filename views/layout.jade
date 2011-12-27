@@ -10,6 +10,12 @@ html
           a(href='/') #{nameAndVersion(appName, version)}
       - if (typeof currentUser !== 'undefined')
         .right
+          a(href='/items') 商品
+        .right
+          a(href='/tickets') 订单
+        .right
+          a(href='/users') 帐户         
+        .right
           a#logout(href='/sessions') 登出
         .right
           &nbsp;
