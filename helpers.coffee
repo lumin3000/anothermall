@@ -1,5 +1,5 @@
 exports.helpers =
-  appName: 'Anothermall_Admin'
+  appName: 'Anothermall'
   version: '0.1'
   nameAndVersion: (name, version) ->
     name + " v" + version

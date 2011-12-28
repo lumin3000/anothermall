@@ -236,9 +236,9 @@ app.get "/img/:id",(req,res)->
 app.get "/tickets", loadUser, (req, res) ->
   Ticket.find {user:new User({_id:req.currentUser.id})},[],sort: [ "created_at", "descending" ],(err, tickets) ->
     tickets = tickets.map (d) ->
-      title: d.title
+      title: d.title.join('<br />')
       id: d._id
-      image:d.image_url
+      image:d.image_url[0]
     res.render "tickets/index.jade",{locals:{tickets: tickets,currentUser:req.currentUser}}
 
 #list in json
@@ -251,32 +251,77 @@ app.get "/tickets.:format?", loadUser, (req, res) ->
       else
         res.send "Format not available", 400
 
+#list
+app.get "/cart", loadUser, (req, res) ->
+  currentUserId = {user:req.currentUser.id}
+  ShoppingCart.findOne currentUserId, (err, cart) ->
+    if !cart || cart.item.length==0
+          req.flash "info", "购物车里没有任何商品"
+          res.render "tickets/new.jade",{locals:{items:false}}
+    else
+      Item.find {_id:{$in:cart.item}},(err, items) ->
+        Address.findOne {user:req.currentUser},(err,address)->
+          address = new Address() if !address
+          res.render "tickets/new.jade",locals:
+            currentUser:req.currentUser
+            items:items
+            address:address
+
 #the page for creating
-app.get "/tickets/new/:id", loadUser, (req, res) ->
+app.get "/cart/new/:id", loadUser, (req, res) ->
   Item.findOne {_id: req.params.id}, (err, item) ->
     if err
       req.flash "info", "没有这个商品"
       res.redirect "/items"
     else
-      currentUser = {user:req.currentUser.id}
-      ShoppingCart.findOne currentUser, (err, cart) ->
-        cart = new ShoppingCart currentUser  if !cart
+      currentUserId = {user:req.currentUser.id}
+      ShoppingCart.findOne currentUserId, (err, cart) ->
+        cart = new ShoppingCart currentUserId  if !cart
         cart.created_at = new Date()
         cart.item.push item._id if cart.item.indexOf(item._id)<0
         cart.save (err)->
           Item.find {_id:{$in:cart.item}},(err, items) ->
-            res.render "tickets/new.jade",{locals:{d: cart,currentUser:req.currentUser,items:items}}
+            Address.findOne {user:req.currentUser},(err,address)->
+              address = new Address() if !address
+              res.render "tickets/new.jade",locals:
+                currentUser:req.currentUser
+                items:items
+                address:address
+#del
+app.get "/cart/del/:id", loadUser, (req, res) ->
+  ShoppingCart.findOne {user:req.currentUser.id}, (err, cart) ->
+    if !cart
+      res.redirect "/cart"
+    else
+      itemIndex = cart.item.indexOf req.params.id
+      if itemIndex>=0
+        cart.item.splice itemIndex,1
+        cart.save (err)->next()
+      else
+        res.redirect "/cart"
 
 
 #create 
 app.post "/tickets", loadUser, (req, res) ->
-  d = new Ticket req.body
+  itemEmpty = false
+  d = new Ticket()
   d.created_at = new Date()
   d.user = req.currentUser.id
-  d.save ->
-    req.flash "info", "恭喜你，订单已经提交。"
-    res.redirect "/tickets"
-
+  ['item','title','image_url','price','totalprice'
+  ,'address_name','address_area','address_street','address_phone'].forEach (el)->
+    if !req.body[el] || req.body[el].length==0
+      itemEmpty = true
+    else
+      d[el] = req.body[el]
+  if itemEmpty
+    req.flash "info", "err"
+    res.redirect "back" 
+  else
+    d.address_zipcode = req.body.address_zipcode || ''
+    d.save ->
+      ShoppingCart.remove req.currentUser.id, (err, cart) ->
+        req.flash "info", "恭喜你，订单已经提交。"
+        res.redirect "/tickets"
 
 #Read
 app.get "/tickets/:id.:format?", loadUser, (req, res) ->
@@ -323,7 +368,7 @@ app.get "/items.:format?", loadUser, (req, res) ->
       else
         res.send "Format not available", 400
 
-#Read, we dont need read, so redirect to edit
+#Read
 app.get "/items/:id.:format?", loadUser, (req, res) ->
   Item.findOne {_id: req.params.id}, (err, d) ->
     if err
@@ -357,7 +402,7 @@ app.get "/items/:id.:format?", loadUser, (req, res) ->
 
 ###
 
-#edit
+#the page for editing
 app.get "/users", loadUser,(req, res) ->
   Address.findOne {user:req.currentUser},(err,address)->
     console.log "address:"+address
@@ -392,8 +437,6 @@ app.put "/users",loadUser, (req, res) ->
         res.render "users/edit.jade",{locals:{user: req.currentUser,address:req.body.address}}
     ]
     
-    
-
 
 app.get "/users/new", (req, res) ->
   res.render "users/new.jade",

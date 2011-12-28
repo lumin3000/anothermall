@@ -1,5 +1,5 @@
 .page
-  h2='购物车'
-  p
-  form(method='post', action='/tickets' , onSubmit='return beforeSubmit(this)')
-    !=partial('fields', { locals: { d: d ,items:items} })
+	h2='购物车'
+	form(method='post', action='/tickets')
+		- if(items)
+			!=partial('fields', { locals: { address: address ,items:items} })

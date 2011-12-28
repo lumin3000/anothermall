@@ -9,10 +9,9 @@ style
   .items .remove {width:100px;text-align:center}
   .items .remove .remove {cursor:pointer}
   .items .image img {width:45px;display:block;margin:10px}
-p=d
-p=items
+  #itemstitle {margin-right:100px}
+  #showshoppingcart {float:right;width:100px;cursor:pointer;}
 #title
-  
 #shoppingcart
   div.items.itemstitle
     div.image &nbsp;
@@ -22,38 +21,49 @@ p=items
   - var totalprice = 0
   - for (var i in items)
     -totalprice+=parseInt(items[i].price,10)
-    div.items
+    div.items.item
+      input(value=items[i]._id,name='item[]',type='hidden')
+      input(value=items[i].title,name='title[]',type='hidden')
+      input(value=items[i].image_url,name='image_url[]',type='hidden')
+      input(value=items[i].price,name='price[]',type='hidden')
       div.image
         img(src='/img/'+items[i].image_url+'_0.jpg')
       div.title=items[i].title
       div.price=items[i].price
       div.remove
-        span.remove 移除
-  div.items.itemstitle
+        a.remove(href='/cart/del/'+items[i]._id)移除
+  #itemsfoot.items.itemstitle
     div.image &nbsp;
     div.title(style='text-align:right') 总价：
     div.price=totalprice
-  a(href='/items')继续购物
-  input#showpayarea(type='button', value='结算' )
+  #cartoperation
+    a(href='/items')继续购物
+    input#showpayarea(type='button', value='结算' )
 #payarea(style='display:none')
   #address 收货人信息
   div
     label 常用收货人姓名:
-    input(value=address.name || '', name='address[name]' )
+    input(value=address.name || '', name='address_name' )
   div
     label 省市地区:
-    input(value=address.area || '', name='address[area]' )
+    input(value=address.area || '', name='address_area' )
   div
     label 街道、门牌号: 
-    input(value=address.street || '', name='address[street]' )
+    input(value=address.street || '', name='address_street' )
   div
     label 电话:
-    input(value=address.phone || '', name='address[phone]' )
+    input(value=address.phone || '', name='address_phone' )
   div
     label 邮编: 
-    input(value=address.zipcode || '', name='address[zipcode]' )
-  #items 商品清单
+    input(value=address.zipcode || '', name='address_zipcode' )
+  #items 
+    #showshoppingcart 修改订单
+    #itemstitle 商品清单
+  #itemsresult
   #payment 结算信息
+    div 
+      strong='应付金额:' + totalprice
+    input(value=totalprice,type='hidden',name='totalprice')
   input#gopaygate(type='submit', value='付款' )
 
 script(type='text/javascript')
@@ -77,7 +87,23 @@ script(type='text/javascript')
       "click span": "remove"
   
   class App extends Spine.Controller
+    events:
+      "click #showpayarea": "showPayarea"
+      "click #showshoppingcart": "showShoppingcart"
+      "click span.remove": "removeItem"
+    showPayarea:()->
+      $('#itemsresult').html $('#shoppingcart').html()
+      $('#itemsresult #cartoperation').remove()
+      $('#itemsresult #itemsfoot').remove()
+      $('#itemsresult .remove').remove() 
+      $('#payarea').css 'display','block'
+      $('#shoppingcart').css 'display','none'
+    showShoppingcart:()->
+      $('#payarea').css 'display','none'
+      $('#shoppingcart').css 'display','block'
+      #$($(event)[0].target).parents('.item').remove()
 
-  top.app = new App()
+
+  top.app = new App el: $("form")
   
 

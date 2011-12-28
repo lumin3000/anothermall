@@ -180,17 +180,9 @@ defineModels = (mongoose, fn) ->
 
 
   Ticket = new Schema
-    title:String
-    image_url:String
     user:
       type: ObjectId
       ref: 'User'
-    address:
-      type: ObjectId
-      ref: 'Address'
-    exhibitor:
-      type: ObjectId
-      ref: 'Exhibitor'
     created_at:
       type:Date
       index:true
@@ -198,9 +190,17 @@ defineModels = (mongoose, fn) ->
       type:Boolean
       default:true
       index:true
-    item: [ObjectId]
+    item: [{type:ObjectId,ref:'Item'}]
+    title:[String]
+    image_url:[String]
+    price:[Number]
+    totalprice:Number
+    address_name:String
+    address_area:String
+    address_street:String
+    address_zipcode: String
+    address_phone: Number
     pay_ref_url:String
-
     delivery_at:Date
 
   Ticket.pre "save", (next) ->
@@ -220,7 +220,7 @@ defineModels = (mongoose, fn) ->
     name:String
     area:String
     street:String
-    zipcode: Number
+    zipcode: String
     phone: Number
 
   Address.virtual("id").get ->
