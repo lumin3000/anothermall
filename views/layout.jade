@@ -10,15 +10,15 @@ html
           a(href='/') #{nameAndVersion(appName, version)}
       - if (typeof currentUser !== 'undefined')
         .right
-          a(href='/items') 商品
+          a(href='/mall/items') 商品
         .right
-          a(href='/cart') 购物车
+          a(href='/mall/carts') 购物车
         .right
-          a(href='/tickets') 已买到的商品
+          a(href='/mall/tickets') 已买到的商品
         .right
-          a(href='/users') 帐户         
+          a(href='/account/users') 帐户         
         .right
-          a#logout(href='/sessions') 登出
+          a#logout(href='/account/sessions') 登出
         .right
           &nbsp;
         #errorMessages

@@ -1,10 +1,10 @@
 .page
   h2 注册
 
-  form.users(method='post', action='/users')
+  form.users(method='post', action='/account/users')
     !=partial('fields', { locals: { user: user } })
     div
       input(type='submit', value='注册')
       span \ 或 
-        a(href='/sessions/new') 登录
+        a(href='/account/sessions/new') 登录
 

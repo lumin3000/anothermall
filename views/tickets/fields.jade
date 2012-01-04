@@ -31,13 +31,13 @@ style
       div.title=items[i].title
       div.price=items[i].price
       div.remove
-        a.remove(href='/cart/del/'+items[i]._id)移除
+        a.remove(href='/mall/carts/'+items[i]._id)移除
   #itemsfoot.items.itemstitle
     div.image &nbsp;
     div.title(style='text-align:right') 总价：
     div.price=totalprice
   #cartoperation
-    a(href='/items')继续购物
+    a(href='/mall/items')继续购物
     input#showpayarea(type='button', value='结算' )
 #payarea(style='display:none')
   #address 收货人信息

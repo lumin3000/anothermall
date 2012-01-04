@@ -1,5 +1,5 @@
 .page
 	h2='购物车'
-	form(method='post', action='/tickets')
+	form(method='post', action='/mall/tickets')
 		- if(items)
 			!=partial('fields', { locals: { address: address ,items:items} })

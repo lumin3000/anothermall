@@ -1,8 +1,8 @@
 .page
   h2 登录
   p
-    a.button(href='/users/new') 创建新帐户 &rarr;
-  form.users#login(method='post', action='/sessions')
+    a.button(href='/account/users/new') 创建新帐户 &rarr;
+  form.users#login(method='post', action='/account/sessions')
     !=partial('fields', { locals: { user: user } })
     div
       label(for='remember_me') 保存的我的密码:
