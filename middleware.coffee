@@ -42,12 +42,9 @@ exports.auth = auth = (req, res, next) ->
     res.redirect "/account/sessions/new"
 
 exports.loadUser = loadUser =(req, res, next) ->
-  nexted = false
   if req.session.user_id
     User.findById req.session.user_id, (err, user) ->
-      if user
-        console.log "User.findById:"+nexted
-        req.currentUser = user
+      req.currentUser = user if user
       next()
   else if req.cookies.userlogintoken
     cookie = JSON.parse(req.cookies.userlogintoken)
@@ -66,12 +63,13 @@ exports.loadUser = loadUser =(req, res, next) ->
               res.cookie "userlogintoken", token.cookieValue,
                 expires: new Date(Date.now() + 2 * 604800000)
                 path: "/"
-              console.log "token.save:"+nexted
               next()
           else
             next()
       else
         next()
+  else
+    next()
 
     
      
