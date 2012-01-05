@@ -23,6 +23,11 @@ html
           &nbsp;
         #errorMessages
         #normalMessages
+      -else
+        .right
+           a(href='/account/users/new') 注册
+        .right
+           a(href='/account/sessions/new') 登录
       !{flashMessages}
       != body
 
