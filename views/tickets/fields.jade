@@ -74,6 +74,26 @@ script(type='text/javascript')
     document.getElementById('normalMessages').innerHTML = str;
   }
   var beforeSubmit = function(form){
+    if (form.address_name && form.address_name.value=='')
+    {
+      flashError("清填写收货人姓名");
+      return false;
+    }
+    if (form.address_area && form.address_area.value=='')
+    {
+      flashError("清填写收货人所在省市地区");
+      return false;
+    }
+    if (form.address_street && form.address_street.value=='')
+    {
+      flashError("清填写收货人所在街道、门牌号");
+      return false;
+    }
+    if (form.address_phone && form.address_phone.value=='')
+    {
+      flashError("清填写收货人联系电话");
+      return false;
+    }
 
     return true;
   }
